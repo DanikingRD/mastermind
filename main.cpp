@@ -38,7 +38,7 @@ const uint MAX_ATTEMPTS = 10;
  *  +---+---+---+---+
  *  | 1 | 5 | 2 | 2 | <- Intento 2
  *  +---+---+---+---+
- *  | 4 | 2 | 3 | 1 | <- ..Intento KEY_LENGTH
+ *  | 4 | 2 | 3 | 1 | <- ..Intento MAX_ATTEMPTS
  *  +---+---+---+---+
  *
 */
