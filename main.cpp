@@ -113,7 +113,7 @@ void genSecretKey(table_t table)
         }
         row[col] = dice;
     }
-    // cout << "[SECRET_KEY]: " << formatArray<int>(table[0]) << endl;
+    cout << "[SECRET_KEY]: " << formatArray<int>(table[0]) << endl;
 }
 
 /*
@@ -142,14 +142,24 @@ bool getResults(table_t table, char *result, int attempt)
 }
 
 /*
- * Verifica si el dígito ingresado por el usuario es válido,
+ * Verifica si el texto ingresado por el usuario es válido,
  * es decir, si está dentro del rango de números de la clave.
+ * Luego lo almacena en el arreglo [output].
  * @param input El dígito ingresado por el usuario.
- * @return Si el dígito es válido o no.
+ * @return Si todos los dígitos son válidos, retorna true, false en caso contrario.
  */
-bool verifyInput(int input)
+bool intoIntArray(string input, int *output)
 {
-    return input >= KEY_RANGE_MIN && input <= KEY_RANGE_MAX;
+    for (int i = 0; i < KEY_LENGTH; i++)
+    {
+        char c = input[i] - '0';
+        if (c < KEY_RANGE_MIN || c > KEY_RANGE_MAX)
+        {
+            return false;
+        }
+        output[i] = c;
+    }
+    return true;
 }
 
 /*
@@ -158,19 +168,14 @@ bool verifyInput(int input)
  * @param attempt El número de intento actual.
  * @param index El índice del dígito actual de [KEY_LENGTH].
  */
-void readDigit(int *input, int attempt, int index)
+void readChars(int *input, int attempt)
 {
-    while (true)
+    string inputStr;
+    while (!(cin >> inputStr) || !intoIntArray(inputStr, input))
     {
-        cout << "Ingrese el valor " << (index + 1) << "/" << KEY_LENGTH << ": ";
-        if (!(cin >> *input) || !verifyInput(*input))
-        {
-            cout << "Valor inválido. Ingrese un número entre " << KEY_RANGE_MIN << " y " << KEY_RANGE_MAX << endl;
-            cin.clear();
-            cin.ignore(10000, '\n');
-            continue;
-        }
-        break;
+        cout << "Valor inválido. Ingrese cuatro dígitos entre " << KEY_RANGE_MIN << " y " << KEY_RANGE_MAX << endl;
+        cin.clear();
+        cin.ignore(10000, '\n');
     }
 }
 
@@ -181,11 +186,12 @@ void readDigit(int *input, int attempt, int index)
  */
 void readInput(table_t table, int attempt)
 {
+    int input[KEY_LENGTH];
+    readChars(input, attempt);
     for (int i = 0; i < KEY_LENGTH; i++)
     {
-        int input;
-        readDigit(&input, attempt, i);
-        table[attempt][i] = input;
+        int intValue = input[i];
+        table[attempt][i] = intValue;
     }
 }
 
@@ -197,7 +203,6 @@ void readInput(table_t table, int attempt)
  */
 bool displayResults(table_t table, int attempt)
 {
-
     cout << "C = caliente, F = frío, X = no existe" << endl;
     cout << "   Intento   "
          << "\tEntrada    "
