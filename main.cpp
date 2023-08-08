@@ -43,7 +43,6 @@ const uint MAX_ATTEMPTS = 10;
  */
 
 typedef int table_t[MAX_ATTEMPTS + 1][KEY_LENGTH];
-
 /*
  * Genera un número aleatorio entre [min] y [max].
  *
@@ -75,10 +74,11 @@ bool arrayContains(int *buf, int val)
     return false;
 }
 
-/// @brief  Formatea un arreglo de enteros.
-/// @tparam T El tipo de dato del arreglo, puede ser int o char.
-/// @param buf El arreglo a formatear.
-/// @return Una cadena de texto con el formato [1, 2, 3, n]
+/*
+ * Formatea un arreglo de enteros.
+ * T El tipo de dato del arreglo, puede ser int o char.
+ * Una cadena de texto con el formato [1, 2, 3, n]
+ */
 template <typename T>
 string formatArray(T *buf)
 {
@@ -127,16 +127,28 @@ void genSecretKey(table_t table)
 bool getResults(table_t table, char *result, int attempt)
 {
     int *key = table[0];
-    // first thing is to check whether the input exists in the key
-    // For each entry in the current table row, we check if it's present on the key.
     int hits = 0;
     for (int index = 0; index < KEY_LENGTH; index++)
     {
-        int input = table[attempt][index];
+        int input = table[attempt][index]; // cada digito
         bool isPresent = arrayContains(key, input);
-        bool f2f = key[index] == table[attempt][index];
-        isPresent ? f2f ? result[index] = 'C' : result[index] = 'F' : result[index] = 'X';
-        result[index] == 'C' ? hits++ : hits;
+        if (isPresent)
+        {
+            bool f2f = key[index] == table[attempt][index];
+            if (f2f)
+            {
+                result[index] = 'C';
+                hits++;
+            }
+            else
+            {
+                result[index] = 'F';
+            }
+        }
+        else
+        {
+            result[index] = 'X';
+        }
     }
     return hits == KEY_LENGTH;
 }
@@ -190,8 +202,7 @@ void readInput(table_t table, int attempt)
     readChars(input, attempt);
     for (int i = 0; i < KEY_LENGTH; i++)
     {
-        int intValue = input[i];
-        table[attempt][i] = intValue;
+        table[attempt][i] = input[i];
     }
 }
 
@@ -239,6 +250,7 @@ int run(table_t table)
     {
         cout << " --- Intento " << attempt << "/" << MAX_ATTEMPTS << " --- " << endl;
         readInput(table, attempt);
+
         bool shouldContinue = displayResults(table, attempt);
         if (!shouldContinue)
         {
