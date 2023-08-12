@@ -185,9 +185,10 @@ void readChars(int *input, int attempt)
     string inputStr;
     while (!(cin >> inputStr) || !intoIntArray(inputStr, input))
     {
-        cout << "Valor inválido. Ingrese cuatro dígitos entre " << KEY_RANGE_MIN << " y " << KEY_RANGE_MAX << endl;
+        cout << "Valor inválido. Ingrese cuatro dígitos entre " << KEY_RANGE_MIN << " y " << KEY_RANGE_MAX << "." << endl;
         cin.clear();
         cin.ignore(10000, '\n');
+        cout << "Intento " << attempt << "/" << MAX_ATTEMPTS << ". Ingrese su clave: ";
     }
 }
 
@@ -198,6 +199,8 @@ void readChars(int *input, int attempt)
  */
 void readInput(table_t table, int attempt)
 {
+    cout << endl;
+    cout << "Intento " << attempt << "/" << MAX_ATTEMPTS << ". Ingrese su clave: ";
     int input[KEY_LENGTH];
     readChars(input, attempt);
     for (int i = 0; i < KEY_LENGTH; i++)
@@ -248,9 +251,7 @@ int run(table_t table)
     int attempt = 1;
     while (attempt <= MAX_ATTEMPTS)
     {
-        cout << " --- Intento " << attempt << "/" << MAX_ATTEMPTS << " --- " << endl;
         readInput(table, attempt);
-
         bool shouldContinue = displayResults(table, attempt);
         if (!shouldContinue)
         {
