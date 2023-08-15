@@ -347,13 +347,17 @@ bool displayResults(table_t table, int attempt)
     {
         // 3) Obtener el resultado de la fila actual.
         char result[KEY_LENGTH]; // ej: [C, C, F, F]
-        bool youWon = getResults(table, result, row + 1);
+        // Aqui usamos row + 1 porque la primera fila es la clave secreta.
+        // y lo que queremos es obtener el resultado de la fila actual.
+        int position = row + 1;
+
+        bool youWon = getResults(table, result, position);
         string margin = "     "; // margen para alinear los resultados.
 
         // [intentos]
-        cout << margin << "[" << row + 1 << "]"
+        cout << margin << "[" << position << "]"
              // [1, 2, 3, 4]
-             << margin << formatArray<int>(table[row + 1])
+             << margin << formatArray<int>(table[position])
              // [C, C, F, F]
              << margin << formatArray<char>(result) << endl;
 
