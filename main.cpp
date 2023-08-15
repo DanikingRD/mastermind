@@ -256,7 +256,7 @@ bool stringContainsDuplicates(string *toCheck)
  */
 bool stringToArray(string input, int *output)
 {
-    if (input.length() != 4)
+    if (input.length() != KEY_LENGTH)
     {
         return false;
     }
