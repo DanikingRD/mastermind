@@ -125,7 +125,6 @@ void genSecretKey(table_t table)
 {
     // 1) Referenciar al arreglo que va a almacenar la clave
     int *key = table[0]; // clave vacía.
-
     // 2) Iterar sobre cada posición.
     for (int col = 0; col < KEY_LENGTH; col++)
     {
@@ -153,6 +152,7 @@ bool getResults(table_t table, char *result, int attempt)
     // 1) Referenciar el arreglo que contiene la clave secreta.
     int *key = table[0];
     int hits = 0; // Contiene el numero de digito que el usuario ha adivinado.
+
     // 2) Iterar sobre c/u de las posiciones
     for (int index = 0; index < KEY_LENGTH; index++)
     {
@@ -164,7 +164,7 @@ bool getResults(table_t table, char *result, int attempt)
         // 6) Añadir el resultado al arreglo
         if (isPresent)
         {
-            bool f2f = key[index] == input;
+            bool f2f = key[index] == input; // face-to-face
             if (f2f)
             {
                 result[index] = 'C';
@@ -198,6 +198,7 @@ bool stringContainsDuplicates(string *toCheck)
     // complejidad: O(n)
     // 2) Declarar un arreglo de booleanos de tamaño [KEY_RANGE_MAX + 1] y llenarlo de `false`.
     bool digitsFound[KEY_RANGE_MAX + 1] = {false};
+    // [false, false, false, false, false, false, false]
 
     // El algoritmo consiste en iterar sobre cada dígito de la cadena
     // e ir marcando en el arreglo de booleanos si dicho dígito ya se encuentra en la cadena.
@@ -220,7 +221,7 @@ bool stringContainsDuplicates(string *toCheck)
      *
      * Iteración 3:
      * - Dígito: 1
-     *   Como digitsFound[1] es true, entonces el dígito 1 ya se encuentra en la cadena.
+     *   Como digitsFound[1] ya era true, entonces el dígito 1 ya se encuentra en la cadena.
      */
     for (int i = 0; i < len; i++)
     {
@@ -244,6 +245,7 @@ bool stringContainsDuplicates(string *toCheck)
     //         }
     //     }
     // }
+
     return false;
 }
 
@@ -260,11 +262,13 @@ bool stringToArray(string input, int *output)
     {
         return false;
     }
-
+    // Pasamos una referencia al string 'input'
+    // para no duplicar la cadena.
     if (stringContainsDuplicates(&input))
     {
         return false;
     }
+
     // 1) Iterar sobre todas las posiciones
     for (int i = 0; i < KEY_LENGTH; i++)
     {
@@ -345,12 +349,12 @@ bool displayResults(table_t table, int attempt)
     // 2) Iterar sobre cada fila de la tabla.
     for (int row = 0; row < attempt; row++)
     {
+
         // 3) Obtener el resultado de la fila actual.
         char result[KEY_LENGTH]; // ej: [C, C, F, F]
         // Aqui usamos row + 1 porque la primera fila es la clave secreta.
         // y lo que queremos es obtener el resultado de la fila actual.
         int position = row + 1;
-
         bool youWon = getResults(table, result, position);
         string margin = "     "; // margen para alinear los resultados.
 
@@ -410,7 +414,8 @@ int main(int argc, char const *argv[])
 {
     cout << "Bienvenido/a al Master Mind!" << endl;
     cout << "Adivina la clave de 4 digitos. Tienes " << MAX_ATTEMPTS << " intentos." << endl;
-    srand(time(NULL));
+
+    srand(time(NULL)); // Inicializar el generador de números aleatorios.
     table_t table_t;
     // 1) Generar clave secreta
     genSecretKey(table_t);
@@ -418,5 +423,6 @@ int main(int argc, char const *argv[])
     int score = run(table_t);
     // 3) Mostrar puntaje final
     cout << "Tu puntaje es: " << score << "/" << MAX_ATTEMPTS << endl;
+    cout << "La clave secreta era: " << formatArray<int>(table_t[0]) << endl;
     return 0;
 }
