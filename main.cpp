@@ -16,6 +16,7 @@ using namespace std;
  */
 
 /// @brief La cantidad de dígitos que contiene la clave.
+// Nota: Todos los arreglos con los que trabajamos son de tamaño KEY_LENGTH.
 const uint KEY_LENGTH = 4;
 /// @brief El número mas pequeño del rango de números de la clave.
 const uint KEY_RANGE_MIN = 1;
@@ -53,46 +54,66 @@ typedef int table_t[MAX_ATTEMPTS + 1][KEY_LENGTH];
  */
 int genRange(int min, int max)
 {
+    // - `rand` genera un entero aleatorio ej 12346567
+    // - `min` y `max` se utilizan para 'convertir' el numero que devuelva al rango [min ,max]
+    // - ej: [76312317, 56312310, 35678513, 17352184] -> [6, 5, 3, 1]
     return min + (rand() % max);
 }
 
 /*
- * Verifica si un arreglo contiene un valor, de manera lineal.
- * @param buf El arreglo a verificar.
- * @param val El valor a buscar.
+ * Verifica si un valor está presente en un arreglo dado.
+ * @param arr El arreglo en el que se va a buscar.
+ * @param target El valor que se desea buscar.
  * @return true si el valor existe en el arreglo, false en caso contrario.
  */
-bool arrayContains(int *buf, int val)
+bool arrayContains(int *arr, int target)
 {
+    // 1) Iterar sobre cada posicion del arreglo
     for (int i = 0; i < KEY_LENGTH; i++)
     {
-        if (buf[i] == val)
+        // 2) Verificar cada elemento
+        if (arr[i] == target)
         {
-            return true;
+            return true; // El valor fue encontrado en el arreglo.
         }
     }
-    return false;
+    return false; // El valor no se encontró en el arreglo.
 }
 
 /*
- * Formatea un arreglo de enteros.
- * T El tipo de dato del arreglo, puede ser int o char.
- * Una cadena de texto con el formato [1, 2, 3, n]
+ * Convierte un arreglo en una cadena formateada.
+ * @tparam T El tipo de dato del arreglo, puede ser int o char.
+ * @param array El arreglo que se va a formatear.
+ * @return Una cadena de texto con el formato [valor1, valor2, ..., valorN].
+ * Ej: [1, 2, 3, 4], [X, X, F, C]
  */
 template <typename T>
-string formatArray(T *buf)
+string formatArray(T *array)
 {
-    string out = "[";
+    // 1) Iniciar el string con un corchete abierto.
+    string output = "[";
+    // 2) Iterar sobre cada posicion
     for (int i = 0; i < KEY_LENGTH; i++)
     {
-        typeid(T) == typeid(char) ? out += buf[i] : out += to_string(buf[i]);
+        // 3) Si el tipo de dato es (char), simplemente añadelo al string
+        if (typeid(T) == typeid(char))
+        {
+            output += array[i]; // Agrega el elemento (char) al arreglo formateado.
+        }
+        else
+        {
+            // 4) Para cualquier otro tipo de dato (en este caso `int`), conviertelo a un string
+            output += to_string(array[i]);
+        }
+        // 5) Añade una "," por cada elemento del arreglo, a excepción del último. 
         if (i < KEY_LENGTH - 1)
         {
-            out += ", ";
+            output += ", ";
         }
     }
-    out += "]";
-    return out;
+    // 5) Añade un corchete cerrado al final del string.
+    output += "]";
+    return output;
 }
 
 /*
@@ -102,39 +123,48 @@ string formatArray(T *buf)
  */
 void genSecretKey(table_t table)
 {
-    int *row = table[0];
+    // 1) Referenciar al arreglo que va a almacenar la clave
+    int *key = table[0]; // clave vacía.
+
+    // 2) Iterar sobre cada posición.
     for (int col = 0; col < KEY_LENGTH; col++)
     {
-        int dice = genRange(KEY_RANGE_MIN, KEY_RANGE_MAX);
-        // Si el número ya existe en la clave, se vuelve a generar otro número.
-        while (arrayContains(row, dice))
+        // 3) Generar un dígito aleatorio entre 1 y 6
+        int randomDigit = genRange(KEY_RANGE_MIN, KEY_RANGE_MAX);
+        // 4) Si el número ya existe en la clave, se vuelve a generar otro número.
+        while (arrayContains(key, randomDigit))
         {
-            dice = genRange(KEY_RANGE_MIN, KEY_RANGE_MAX);
+            randomDigit = genRange(KEY_RANGE_MIN, KEY_RANGE_MAX);
         }
-        row[col] = dice;
+        // 5) Colocar el dígito en su posición correspondiente.
+        key[col] = randomDigit;
     }
-    cout << "[SECRET_KEY]: " << formatArray<int>(table[0]) << endl;
 }
 
 /*
  * Genera los resultados del intento [attempt] y los almacena en el arreglo [result].
- *
  * @param table Referencia a la tabla donde se almacenan los intentos del usuario.
- * @param result Referencia al arreglo donde se almacenarán las pistas.
- * @param attempt El número de intento actual.
+ * @param result Referencia al arreglo donde se almacenarán las pistas, ej: [C, F, X, C]
+ * @param attempt El número de intento actual. (entre 1 y 10)
  * @return true si el usuario adivinó la clave, false en caso contrario.
  */
 bool getResults(table_t table, char *result, int attempt)
 {
+    // 1) Referenciar el arreglo que contiene la clave secreta.
     int *key = table[0];
-    int hits = 0;
+    int hits = 0; // Contiene el numero de digito que el usuario ha adivinado.
+    // 2) Iterar sobre c/u de las posiciones
     for (int index = 0; index < KEY_LENGTH; index++)
     {
-        int input = table[attempt][index]; // cada digito
+        // 3) Obtener la entrada del usuario correspondiente
+        int input = table[attempt][index];
+        // 4) Verificar si dicha entrada se encuentra en la clave secreta.
         bool isPresent = arrayContains(key, input);
+        // 5) Verificar si se encuentra en la posicion correcta
+        // 6) Añadir el resultado al arreglo
         if (isPresent)
         {
-            bool f2f = key[index] == table[attempt][index];
+            bool f2f = key[index] == input;
             if (f2f)
             {
                 result[index] = 'C';
@@ -150,41 +180,124 @@ bool getResults(table_t table, char *result, int attempt)
             result[index] = 'X';
         }
     }
+    // 7) Regresar si el usuario ha adivinado todos los digitos.
+    // True indica que el usuario ha adivinado la clave.
     return hits == KEY_LENGTH;
 }
 
 /*
- * Verifica si el texto ingresado por el usuario es válido,
- * es decir, si está dentro del rango de números de la clave.
- * Luego lo almacena en el arreglo [output].
- * @param input El dígito ingresado por el usuario.
+ * Verifica si una cadena contiene dígitos duplicados.
+ * @param toCheck La cadena que se va a verificar.
+ * @return true si la cadena contiene dígitos duplicados, false en caso contrario.
+ */
+bool stringContainsDuplicates(string *toCheck)
+{
+    // 1) Obtener la longitud de la cadena
+    int len = toCheck->length();
+
+    // complejidad: O(n)
+    // 2) Declarar un arreglo de booleanos de tamaño [KEY_RANGE_MAX + 1] y llenarlo de `false`.
+    bool digitsFound[KEY_RANGE_MAX + 1] = {false};
+
+    // El algoritmo consiste en iterar sobre cada dígito de la cadena
+    // e ir marcando en el arreglo de booleanos si dicho dígito ya se encuentra en la cadena.
+
+    // Si el dígito ya se encuentra en el arreglo, entonces hay duplicados.
+    // Por ejemplo:
+    /*
+     *
+     * Digits found: [false, false, false, false, false, false, false]
+     * Posiciones:   [ 0      1      2      3      4      5      6  ]
+     *
+     * Iteración 1:
+     * - Dígito encontrado: `1`
+     *   Digits found: [false, true, false, false, false, false, false]
+     *   note que digitsFound[1] ahora es true.
+     *
+     * Iteración 2:
+     * - Dígito: 4
+     * Digits found: [false, true, false, false, true, false, false]
+     *
+     * Iteración 3:
+     * - Dígito: 1
+     *   Como digitsFound[1] es true, entonces el dígito 1 ya se encuentra en la cadena.
+     */
+    for (int i = 0; i < len; i++)
+    {
+        int digit = int((*toCheck)[i] - '0');
+        // Si el digito ya se encuentra en el arreglo, entonces hay duplicados.
+        if (digitsFound[digit])
+        {
+            return true;
+        }
+        digitsFound[digit] = true;
+    }
+    // Método alternativo
+    // Complejidad: O(n^2)
+    // for (int i = 0; i < len; i++)
+    // {
+    //     for (int j = i + 1; j < len; j++)
+    //     {
+    //         if (toCheck[i] == toCheck[j])
+    //         {
+    //             return true;
+    //         }
+    //     }
+    // }
+    return false;
+}
+
+/*
+ * Transforma el texto ingresado por el usuario a un arreglo de enteros
+ * (string -> int[]) almacenado en el parámetro [output].
+ * @param input La entrada del usuario.
+ * @param output El arreglo donde se almacena el nuevo arreglo de enteros.
  * @return Si todos los dígitos son válidos, retorna true, false en caso contrario.
  */
-bool intoIntArray(string input, int *output)
+bool stringToArray(string input, int *output)
 {
+    if (input.length() != 4)
+    {
+        return false;
+    }
+
+    if (stringContainsDuplicates(&input))
+    {
+        return false;
+    }
+    // 1) Iterar sobre todas las posiciones
     for (int i = 0; i < KEY_LENGTH; i++)
     {
+        // 2) Obtener el caracter.
+        // Nota: - '0' es una forma de convertir el 'ASCII' de un caracter a su valor entero.
         char c = input[i] - '0';
+        // 3) Verificar que cada dígito se encuentre entre 1 y 6.
         if (c < KEY_RANGE_MIN || c > KEY_RANGE_MAX)
         {
-            return false;
+            return false; // No se pudo convertir string a -> int[]
         }
         output[i] = c;
     }
+
+    // Si llegaste hasta aqui significa que no hubo ningún problema con la conversión
+    // returna true.
     return true;
 }
 
 /*
- * Lee un dígito ingresado por el usuario, y lo valida.
- * @param input Referencia al entero donde se almacenará el dígito ingresado.
+ * Lee los digitos ingresado por el usuario
+ * @param input El arreglo que va a almacenar la entrada del usuario.
  * @param attempt El número de intento actual.
- * @param index El índice del dígito actual de [KEY_LENGTH].
  */
-void readChars(int *input, int attempt)
+void readUserDigits(int *input, int attempt)
 {
-    string inputStr;
-    while (!(cin >> inputStr) || !intoIntArray(inputStr, input))
+    // String temporal que contiene los digitos del usuario, ej: 1234
+    // 1) Declarar el string que almacena la entrada del usuario
+    string temp;
+    // 2) Validar que cin pueda leer el string y que el string se pueda convertir a un arreglo de enteros.
+    while (!(cin >> temp) || !stringToArray(temp, input))
     {
+        // 3) De lo contrario, limpiar el buffer de entrada y volver a intentar.
         cout << "Valor inválido. Ingrese cuatro dígitos entre " << KEY_RANGE_MIN << " y " << KEY_RANGE_MAX << "." << endl;
         cin.clear();
         cin.ignore(10000, '\n');
@@ -200,9 +313,14 @@ void readChars(int *input, int attempt)
 void readInput(table_t table, int attempt)
 {
     cout << endl;
+    /// 1) Imprimir el intento actual
     cout << "Intento " << attempt << "/" << MAX_ATTEMPTS << ". Ingrese su clave: ";
+    // 2) Declarar arreglo temporal que almacena la entrada del usuario.
     int input[KEY_LENGTH];
-    readChars(input, attempt);
+    // 3) Leer la entrada del usuario y almacenarla en el arreglo temporal.
+    readUserDigits(input, attempt);
+    // 4) Iterar sobre cada posición del arreglo temporal y almacenarla
+    // en su lugar correspondiente dentro de la tabla.
     for (int i = 0; i < KEY_LENGTH; i++)
     {
         table[attempt][i] = input[i];
@@ -210,32 +328,43 @@ void readInput(table_t table, int attempt)
 }
 
 /*
- * Muestra los intentos del usuario y las pistas.
- * Además, verifica si el usuario adivinó la clave.
+ * Muestra las tablas de resultados al usuario.
  * @param table Referencia a la tabla donde se almacenan los intentos del usuario.
  * @param attempt El número de intento actual.
+ * @return true si el usuario adivinó la clave, false en caso contrario.
  */
 bool displayResults(table_t table, int attempt)
 {
+    // 1) Indicar que significa cada letra.
     cout << "C = caliente, F = frío, X = no existe" << endl;
     cout << "   Intento   "
          << "\tEntrada    "
          << "\t Salida"
          << endl;
 
+    // 2) Iterar sobre cada fila de la tabla.
     for (int row = 0; row < attempt; row++)
     {
-        char result[KEY_LENGTH];
-        bool hitAll = getResults(table, result, row + 1);
-        string margin = "     ";
-        cout << margin << "[" << row + 1 << "]" << margin << formatArray<int>(table[row + 1]) << margin << formatArray<char>(result) << endl;
-        if (hitAll)
+        // 3) Obtener el resultado de la fila actual.
+        char result[KEY_LENGTH]; // ej: [C, C, F, F]
+        bool youWon = getResults(table, result, row + 1);
+        string margin = "     "; // margen para alinear los resultados.
+
+        // [intentos]
+        cout << margin << "[" << row + 1 << "]"
+             // [1, 2, 3, 4]
+             << margin << formatArray<int>(table[row + 1])
+             // [C, C, F, F]
+             << margin << formatArray<char>(result) << endl;
+
+        if (youWon)
         {
             cout << "Ganaste!" << endl;
-            return false;
+            return true;
         }
     }
-    return true;
+    // Si llegaste hasta aqui significa que el usuario no ha adivinado la clave.
+    return false;
 }
 
 /*
@@ -248,15 +377,26 @@ bool displayResults(table_t table, int attempt)
  */
 int run(table_t table)
 {
+    // Este es el loop principal del programa.
+    // el orden de ejecución es:
+    //   1 - Leer entrada del usuario.
+    //   2 - Mostrar resultados.
+    //   3 - Si el usuario adivinó la clave, terminar el programa.
+    //   4 - De lo contrario, incrementar el número de intentos.
+    //   5 - Repetir hasta que el usuario adivine la clave o se quede sin intentos.
     int attempt = 1;
     while (attempt <= MAX_ATTEMPTS)
     {
+        // 1)
         readInput(table, attempt);
-        bool shouldContinue = displayResults(table, attempt);
-        if (!shouldContinue)
+        // 2)
+        bool youWon = displayResults(table, attempt);
+        // 3)
+        if (youWon)
         {
             break;
         }
+        // 4)
         attempt++;
     }
     return (MAX_ATTEMPTS - attempt) + 1;
