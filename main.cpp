@@ -417,6 +417,6 @@ int main(int argc, char const *argv[])
     // 2) Ejecutar el main loop
     int score = run(table_t);
     // 3) Mostrar puntaje final
-    std::cout << "Tu puntaje es: " << score << "/" << MAX_ATTEMPTS << std::endl;
+    cout << "Tu puntaje es: " << score << "/" << MAX_ATTEMPTS << endl;
     return 0;
 }
